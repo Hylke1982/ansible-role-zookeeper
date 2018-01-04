@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# Only if myid does not exists
+if [ ! -f "{{zookeeper_data_dir}}/myid" ]; then
+    ID=$(( $RANDOM % 256 + 1 ))
+    echo "Generate ID: $ID for zookeeper"
+    echo $ID > {{zookeeper_data_dir}}/myid
+    chmod g+rw {{zookeeper_data_dir}}/myid
+fi

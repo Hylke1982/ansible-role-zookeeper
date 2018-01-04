@@ -1,0 +1,10 @@
+zookeeper_user: zookeeper
+zookeeper_group: zookeeper
+zookeeper_home: /opt/zookeeper
+
+zookeeper_version: 3.4.11
+zookeeper_mirror: apache.40b.nl
+zookeeper_link: "http://{{ zookeeper_mirror }}/zookeeper/zookeeper-{{ zookeeper_version }}/zookeeper-{{ zookeeper_version }}.tar.gz"
+zookeeper_app_dir: "{{ zookeeper_home }}/app"
+zookeeper_data_dir: "{{ zookeeper_home }}/data"
+zookeeper_log_dir: "{{ zookeeper_home }}/log"

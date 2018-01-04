@@ -1,0 +1,15 @@
+[Unit]
+Description=Zookeeper service
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory={{zookeeper_app_dir}}
+ExecStartPre={{zookeeper_app_dir}}/bin/generate-myid.sh
+ExecStart={{zookeeper_app_dir}}/bin/zkServer.sh start
+ExecStop={{zookeeper_app_dir}}/bin/zkServer.sh stop
+Type=forking
+User={{zookeeper_user}}
+
+[Install]
+WantedBy=multi-user.target

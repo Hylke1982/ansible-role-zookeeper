@@ -1,0 +1,118 @@
+- name: "Install Java"
+  package:
+    name: "openjdk-8-jdk-headless"
+    state: "latest"
+  become: true
+
+- name: "Install Policy kit"
+  package:
+    name: "policykit-1"
+    state: "latest"
+  become: true
+
+- name: "Create zookeeper  group"
+  group:
+    name: "{{ zookeeper_group }}"
+  become: true
+
+- name: "Create zookeeper user"
+  user:
+    name: "{{ zookeeper_user }}"
+    comment: "Zookeeper"
+    group: "{{ zookeeper_group }}"
+    home: "{{ zookeeper_home }}"
+  become: true
+
+- name: "Download zookeeper"
+  unarchive:
+    src: "{{ zookeeper_link }}"
+    dest: "{{ zookeeper_home }}"
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+    remote_src: yes
+  become: true
+
+- name: "Create zookeeper app symlink"
+  file:
+    src: "{{ zookeeper_home }}/zookeeper-{{ zookeeper_version }}"
+    dest: "{{ zookeeper_home }}/app"
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+    state: link
+  become: true
+
+- name: "Create zookeeper data dir"
+  file:
+    path: "{{ zookeeper_data_dir }}"
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+    state: directory
+  become: true
+
+- name: "Create zookeeper log dir"
+  file:
+    path: "{{ zookeeper_log_dir }}"
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+    state: directory
+  become: true
+
+- name: "Wait for sample file"
+  wait_for:
+    path: "{{ zookeeper_home }}/app/conf/zoo_sample.cfg"
+
+- name: "Copy sample config"
+  copy:
+    src: "{{ zookeeper_app_dir }}/conf/zoo_sample.cfg"
+    dest: "{{ zookeeper_app_dir }}/conf/zoo.cfg"
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+    mode: 0664
+    remote_src: yes
+  become: true
+
+- name: "Copy generate-myid file"
+  template:
+    src: "generate-myid.sh.j2"
+    dest: "{{ zookeeper_app_dir }}/bin/generate-myid.sh"
+    owner: "{{ zookeeper_user }}"
+    group: "{{ zookeeper_group }}"
+    mode: 0744
+  become: true
+
+
+- name: "Update data dir in config"
+  lineinfile:
+    path: "{{ zookeeper_app_dir }}/conf/zoo.cfg"
+    regexp: '^dataDir='
+    line: "dataDir={{ zookeeper_data_dir }}"
+  become: true
+
+- name: "Update log dir in config"
+  lineinfile:
+    path: "{{ zookeeper_app_dir }}/conf/zoo.cfg"
+    regexp: '^dataLogDir='
+    line: "dataLogDir={{ zookeeper_log_dir }}"
+  become: true
+
+- name: "Copy service file"
+  template:
+    src: "zookeeper.service.j2"
+    dest: /etc/systemd/system/zookeeper.service
+    mode: 0644
+  become: true
+
+- name: "Start zookeeper service"
+  service:
+    name: zookeeper.service
+    state: started
+    enabled: yes
+  become: true
+
+- name: "Set facts"
+  set_fact:
+    zookeeper_app_dir: "{{ zookeeper_app_dir }}"
+    zookeeper_data_dir: "{{ zookeeper_data_dir }}"
+    zookeeper_log_dir: "{{ zookeeper_log_dir }}"
+    zookeeper_group: "{{ zookeeper_group }}"
+    zookeeper_user: "{{ zookeeper_user }}"
